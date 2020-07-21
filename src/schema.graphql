@@ -1,5 +1,5 @@
 type Query {
-    users: [User!]!
+    users(query: String): [User!]!
     posts(query: String): [Post!]!
     comments: [Comment!]!
     add(num1: Int!, num2: Int!): Float!
@@ -56,7 +56,7 @@ type User {
     id: ID!
     name: String!
     email: String!
-    age: Int
+    # age: Int
     posts: [Post!]!
     comments: [Comment!]!
 }
