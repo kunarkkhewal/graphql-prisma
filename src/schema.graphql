@@ -54,7 +54,7 @@ type User {
     id: ID!
     name: String!
     email: String!
-    # age: Int
+    password: String!
     posts: [Post!]!
     comments: [Comment!]!
 }
