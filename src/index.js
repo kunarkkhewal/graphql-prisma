@@ -7,6 +7,8 @@ import User from './resolvers/User';
 import Post from './resolvers/Post';
 import Comment from './resolvers/Comment';
 import prisma from './prisma';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const pubsub = new PubSub();
 
