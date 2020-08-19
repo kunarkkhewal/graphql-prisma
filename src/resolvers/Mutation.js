@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import getUserId from '../utils/getUserId';
 
 const Mutation = {
     async createUser(parent, args, { prisma }, info) {
@@ -47,34 +48,27 @@ const Mutation = {
         }
     },
 
-    async deleteUser(parent, args, { prisma }, info) {
-        const userExist = await prisma.exists.User({ id: args.id })
-
-        if(!userExist){
-            throw new Error('USER DOES NOT EXIST!!!')
-        }
+    async deleteUser(parent, args, { prisma, request }, info) {
+        const userId = getUserId(request);
 
         return prisma.mutation.deleteUser({ 
-            where: { id: args.id }
+            where: { id: userId }
         }, info)
     },
 
-    async updateUser(parent, args, { prisma }, info) {
-        let userExist = await prisma.exists.User({ id: args.id })
-
-        if(!userExist){
-            throw new Error('USER DOES NOT EXIST!!!')
-        }
+    async updateUser(parent, args, { prisma, request }, info) {
+        const userId = getUserId(request);
 
         return prisma.mutation.updateUser({
             where: {
-                id: args.id
+                id: userId
             },
             data: args.data
         }, info)
     },
 
-    async createPost(parent, args, { prisma }, info) {
+    async createPost(parent, args, { prisma, request }, info) {
+        const userId = getUserId(request)
         return prisma.mutation.createPost({
             data: {
                 title: args.data.title,
@@ -82,18 +76,24 @@ const Mutation = {
                 published: args.data.published,
                 author:{
                     connect:{
-                        id: args.data.author
+                        id: userId
                     }
                 }
             }
         }, info)
     },
 
-    async deletePost(parent, args, { prisma }, info) {
-        let isPostExists = await prisma.exists.Post({id: args.id})
+    async deletePost(parent, args, { prisma, request }, info) {
+        const userId = getUserId(request);
+        const isPostExists = await prisma.exists.Post({
+            id: args.id,
+            author: {
+                id: userId
+            }
+        })
 
         if(!isPostExists){
-            throw new Error('POST DOES NOT EXISTS!!!')
+            throw new Error('OPERATION FAILED!!!')
         }
 
         return prisma.mutation.deletePost({
@@ -103,11 +103,17 @@ const Mutation = {
         }, info)
     },
 
-    async updatePost(parent, args, { prisma }, info) {
-        let isPostExist = await prisma.exists.Post({id: args.id})
+    async updatePost(parent, args, { prisma, request }, info) {
+        const userId = getUserId(request);
+        let isPostExist = await prisma.exists.Post({
+            id: args.id,
+            author: {
+                id: userId
+            }
+        })
 
         if(!isPostExist){
-            throw new Error('POST DOES NOT EXISTS!!!')
+            throw new Error('OPERATION FAILED!!!')
         }
 
         return prisma.mutation.updatePost({
@@ -118,13 +124,14 @@ const Mutation = {
         }, info)
     },
 
-    async createComment(parent, args, { prisma }, info) {
+    async createComment(parent, args, { prisma, request }, info) {
+        const userId = getUserId(request);
         return prisma.mutation.createComment({
             data: {
                 text: args.data.text,
                 author: {
                     connect: {
-                        id: args.data.author
+                        id: userId
                     }
                 },
                 post: {
@@ -136,7 +143,18 @@ const Mutation = {
         }, info)
     },
 
-    async deleteComment(parent, args, { prisma }, info) {
+    async deleteComment(parent, args, { prisma, request }, info) {
+        const userId = getUserId(request);
+        let isComment = await prisma.exists.Comment({
+            id: args.id,
+            author: {
+                id: userId
+            }
+        })
+        if(!isComment){
+            throw new Error('OPERATION FAILED!!!')
+        }
+
         return prisma.mutation.deleteComment({
             where: {
                 id: args.id
@@ -144,7 +162,18 @@ const Mutation = {
         }, info)
     },
 
-    async updateComment(parent, args, { prisma }, info) {
+    async updateComment(parent, args, { prisma, request }, info) {
+        const userId = getUserId(request);
+        let isComment = await prisma.exists.Comment({
+            id: args.id,
+            author: {
+                id: userId
+            }
+        })
+        if(!isComment){
+            throw new Error('OPERATION FAILED!!!')
+        }
+        
         return prisma.mutation.updateComment({
             data: args.data,
             where: {
