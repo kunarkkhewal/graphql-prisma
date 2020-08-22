@@ -1,10 +1,11 @@
 type Query {
     users(query: String): [User!]!
     posts(query: String): [Post!]!
+    myPosts(query: String): [Post!]!
     comments: [Comment!]!
     add(num1: Int!, num2: Int!): Float!
     me: User!
-    post: Post!
+    post(id: ID!): Post!
 }
 type Mutation {
     login(data: LoginUserInput): AuthPayload!
