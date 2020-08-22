@@ -105,15 +105,29 @@ const Mutation = {
 
     async updatePost(parent, args, { prisma, request }, info) {
         const userId = getUserId(request);
-        let isPostExist = await prisma.exists.Post({
+        const isPostExist = await prisma.exists.Post({
             id: args.id,
             author: {
                 id: userId
             }
         })
+        const isPostPublished = await prisma.exists.Post({
+            id: args.id,
+            published: true
+        })
 
         if(!isPostExist){
             throw new Error('OPERATION FAILED!!!')
+        }
+
+
+
+        if(isPostPublished && args.data.published === false){
+            await prisma.mutation.deleteManyComments({
+                post: {
+                    id: args.id
+                }
+            })
         }
 
         return prisma.mutation.updatePost({
@@ -126,6 +140,13 @@ const Mutation = {
 
     async createComment(parent, args, { prisma, request }, info) {
         const userId = getUserId(request);
+        const isPostPublished = await prisma.exists.Post({
+            id: args.data.post,
+            published: true 
+        })
+        if(!isPostPublished){
+            throw new Error('OPERATION FAILED!!!')
+        }
         return prisma.mutation.createComment({
             data: {
                 text: args.data.text,
